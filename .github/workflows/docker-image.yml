@@ -6,6 +6,11 @@ on:
   pull_request:
     branches: [ master ]
 
+env:
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+
 jobs:
 
   build:
@@ -14,11 +19,22 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+        
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v1
+    
     - name: Build and Push the Docker image
       uses: mr-smithers-excellent/docker-build-push@v5
       with:
         image: demo-app
         registry: 505444981462.dkr.ecr.us-east-1.amazonaws.com
       env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ env.AWS_SECRET_ACCESS_KEY }}
